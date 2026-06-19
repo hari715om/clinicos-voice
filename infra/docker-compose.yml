@@ -1,0 +1,75 @@
+# ==============================================================
+# ClinicOS Voice — Local Development Stack
+# Services: PostgreSQL, Redis, Backend API
+# Usage: docker-compose up -d
+# ==============================================================
+
+version: "3.9"
+
+services:
+  # ── PostgreSQL ─────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: clinicos_postgres
+    environment:
+      POSTGRES_USER: clinicos
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: clinicos_voice
+    ports:
+      - "5433:5432"  # 5432 is taken by native PG17; map container to 5433
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clinicos -d clinicos_voice"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Redis ──────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: clinicos_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+
+  # ── Backend API ────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: clinicos_backend
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://clinicos:secret@postgres:5432/clinicos_voice
+      DATABASE_URL_SYNC: postgresql+psycopg2://clinicos:secret@postgres:5432/clinicos_voice
+      # Note: backend container talks to postgres via internal Docker network (port 5432)
+      # From the host, connect via localhost:5433
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app  # hot-reload in development
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
