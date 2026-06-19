@@ -1,0 +1,17 @@
+# ==============================================================
+# ClinicOS Voice — LiveKit Agent Dependencies (Phase 3)
+# Install AFTER core requirements:
+#   pip install -r requirements-agent.txt
+#
+# Note: livekit-agents ecosystem evolves rapidly.
+# Run `pip install livekit-agents --upgrade` for latest.
+# ==============================================================
+
+# ── LiveKit Core ───────────────────────────────────────────
+livekit-agents
+
+# ── Plugins (install only what you use) ────────────────────
+livekit-plugins-groq
+livekit-plugins-deepgram
+livekit-plugins-elevenlabs
+livekit-plugins-silero
