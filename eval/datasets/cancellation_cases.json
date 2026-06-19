@@ -1,0 +1,67 @@
+"""
+Eval harness test cases — Cancellation scenarios.
+"""
+[
+  {
+    "case_id": "cancel_001",
+    "case_type": "cancellation",
+    "description": "Patient cancels existing appointment with clear intent",
+    "input_utterances": [
+      "I want to cancel my appointment",
+      "My phone is 9861234567",
+      "Yes, cancel the neurology appointment",
+      "Confirm"
+    ],
+    "expected_tool_calls": [
+      {"tool": "lookup_patient_appointments", "args": {"phone": "9861234567"}},
+      {"tool": "cancel_appointment", "args": {}}
+    ],
+    "expected_outcome": {
+      "action": "cancelled",
+      "cancellation_confirmed": true
+    },
+    "tags": ["cancellation", "clear_intent", "happy_path"]
+  },
+  {
+    "case_id": "cancel_002",
+    "case_type": "cancellation",
+    "description": "Patient has multiple appointments — agent clarifies which one",
+    "input_utterances": [
+      "Cancel my appointment",
+      "Phone 9937812345",
+      "The one with the endocrinologist",
+      "Yes, confirm"
+    ],
+    "expected_tool_calls": [
+      {"tool": "lookup_patient_appointments", "args": {}},
+      {"tool": "cancel_appointment", "args": {}}
+    ],
+    "expected_outcome": {
+      "action": "cancelled",
+      "clarification_needed": true,
+      "correct_appointment_identified": true
+    },
+    "tags": ["cancellation", "multiple_appointments", "clarification_needed"]
+  },
+  {
+    "case_id": "cancel_003",
+    "case_type": "cancellation",
+    "description": "Patient asks to cancel with partial information — agent asks for phone",
+    "input_utterances": [
+      "I can't make my appointment tomorrow",
+      "Priya Dash",
+      "8763456789",
+      "Yes, please cancel it"
+    ],
+    "expected_tool_calls": [
+      {"tool": "lookup_patient_appointments", "args": {}},
+      {"tool": "cancel_appointment", "args": {}}
+    ],
+    "expected_outcome": {
+      "action": "cancelled",
+      "phone_requested": true,
+      "cancellation_confirmed": true
+    },
+    "tags": ["cancellation", "partial_info", "clarification_needed"]
+  }
+]

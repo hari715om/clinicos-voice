@@ -1,0 +1,88 @@
+"""
+Eval harness test cases — Conflict scenarios.
+These test the system's ability to prevent double-booking and handle edge cases.
+"""
+[
+  {
+    "case_id": "conflict_001",
+    "case_type": "conflict",
+    "description": "Patient attempts to book a slot that is already booked",
+    "input_utterances": [
+      "I want to book with Dr. Akash Gupta",
+      "My name is Deepa Mishra, 9178456321",
+      "Tuesday at 10am",
+      "Okay the 11am slot instead"
+    ],
+    "expected_tool_calls": [
+      {"tool": "check_availability", "args": {}},
+      {"tool": "book_appointment", "args": {}}
+    ],
+    "expected_outcome": {
+      "action": "booked",
+      "conflict_handled": true,
+      "alternative_accepted": true
+    },
+    "tags": ["conflict", "slot_booked", "alternative_accepted"]
+  },
+  {
+    "case_id": "conflict_002",
+    "case_type": "conflict",
+    "description": "Requested slot is outside clinic hours",
+    "input_utterances": [
+      "I need to see Dr. Amitav Rath on Tuesday evening at 7pm",
+      "My name is Ramesh Tripathi, 8658904321"
+    ],
+    "expected_tool_calls": [
+      {"tool": "check_availability", "args": {}}
+    ],
+    "expected_outcome": {
+      "action": "no_booking",
+      "conflict_handled": true,
+      "reason": "outside_clinic_hours",
+      "alternative_offered": true
+    },
+    "tags": ["conflict", "outside_hours", "alternative_offered"]
+  },
+  {
+    "case_id": "conflict_003",
+    "case_type": "conflict",
+    "description": "Doctor unavailable on requested day",
+    "input_utterances": [
+      "Book me with Dr. Amitav Rath on Tuesday",
+      "My name is Suchitra Rath, 9777623456",
+      "Yes, Wednesday works"
+    ],
+    "expected_tool_calls": [
+      {"tool": "check_availability", "args": {"doctor_name": "Dr. Amitav Rath"}},
+      {"tool": "check_availability", "args": {}},
+      {"tool": "book_appointment", "args": {}}
+    ],
+    "expected_outcome": {
+      "action": "booked",
+      "conflict_handled": true,
+      "doctor_unavailable_on_day": true,
+      "alternative_day_accepted": true
+    },
+    "tags": ["conflict", "doctor_unavailable_day", "alternative_day"]
+  },
+  {
+    "case_id": "conflict_004",
+    "case_type": "conflict",
+    "description": "Double-book prevention — same patient tries to book twice for same slot",
+    "input_utterances": [
+      "I want to book an appointment",
+      "Rajesh Mohanty, 9861234567",
+      "With Dr. Mithilesh tomorrow morning"
+    ],
+    "expected_tool_calls": [
+      {"tool": "lookup_patient_appointments", "args": {}},
+      {"tool": "check_availability", "args": {}},
+      {"tool": "book_appointment", "args": {}}
+    ],
+    "expected_outcome": {
+      "action": "booked",
+      "existing_appointment_flagged": true
+    },
+    "tags": ["conflict", "double_book", "existing_patient"]
+  }
+]

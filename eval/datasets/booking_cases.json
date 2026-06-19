@@ -1,0 +1,113 @@
+"""
+Eval harness test cases — Booking scenarios.
+Each case drives a specific conversation path the voice agent must handle.
+"""
+[
+  {
+    "case_id": "book_001",
+    "case_type": "booking",
+    "description": "New patient books with department preference only (no doctor preference)",
+    "input_utterances": [
+      "I'd like to book an appointment",
+      "I need to see a neurologist",
+      "My name is Rajesh Mohanty",
+      "My phone number is 9861234567",
+      "Tomorrow please, morning",
+      "The first available slot is fine"
+    ],
+    "expected_tool_calls": [
+      {"tool": "get_doctor_list", "args": {"department": "Neurology"}},
+      {"tool": "check_availability", "args": {}},
+      {"tool": "book_appointment", "args": {"appointment_type": "new_consultation"}}
+    ],
+    "expected_outcome": {
+      "action": "booked",
+      "booking_confirmed": true,
+      "appointment_type": "new_consultation"
+    },
+    "tags": ["booking", "department_only", "no_doctor_preference", "happy_path"]
+  },
+  {
+    "case_id": "book_002",
+    "case_type": "booking",
+    "description": "Patient books with specific doctor preference",
+    "input_utterances": [
+      "I want to book with Dr. Amitav Rath",
+      "I'm Priya Dash, phone 8763456789",
+      "Any slot this week",
+      "Wednesday works for me"
+    ],
+    "expected_tool_calls": [
+      {"tool": "check_availability", "args": {"doctor_name": "Dr. Amitav Rath"}},
+      {"tool": "book_appointment", "args": {}}
+    ],
+    "expected_outcome": {
+      "action": "booked",
+      "doctor": "Dr. Amitav Rath",
+      "booking_confirmed": true
+    },
+    "tags": ["booking", "specific_doctor", "happy_path"]
+  },
+  {
+    "case_id": "book_003",
+    "case_type": "booking",
+    "description": "Patient uses ambiguous date phrasing (next week Monday)",
+    "input_utterances": [
+      "Book me with the dentist",
+      "My name is Suresh Panda, 7894561230",
+      "Next week Monday",
+      "First slot in the morning"
+    ],
+    "expected_tool_calls": [
+      {"tool": "check_availability", "args": {"department": "Dentistry"}},
+      {"tool": "book_appointment", "args": {}}
+    ],
+    "expected_outcome": {
+      "action": "booked",
+      "department": "Dentistry",
+      "booking_confirmed": true
+    },
+    "tags": ["booking", "ambiguous_date", "department_only"]
+  },
+  {
+    "case_id": "book_004",
+    "case_type": "booking",
+    "description": "Follow-up appointment (existing patient)",
+    "input_utterances": [
+      "I need a follow-up with Dr. Madhusmita Sahu",
+      "Phone is 9937812345",
+      "Friday afternoon"
+    ],
+    "expected_tool_calls": [
+      {"tool": "lookup_patient_appointments", "args": {"phone": "9937812345"}},
+      {"tool": "check_availability", "args": {"doctor_name": "Dr. Madhusmita Sahu"}},
+      {"tool": "book_appointment", "args": {"appointment_type": "follow_up"}}
+    ],
+    "expected_outcome": {
+      "action": "booked",
+      "appointment_type": "follow_up",
+      "booking_confirmed": true
+    },
+    "tags": ["booking", "follow_up", "existing_patient"]
+  },
+  {
+    "case_id": "book_005",
+    "case_type": "booking",
+    "description": "Book when exact requested slot is unavailable — agent suggests alternatives",
+    "input_utterances": [
+      "I need to see a physiotherapist tomorrow at 9am",
+      "My name is Bikash Nayak, 9438012345",
+      "The 10am slot works for me"
+    ],
+    "expected_tool_calls": [
+      {"tool": "check_availability", "args": {"department": "Physiotherapy"}},
+      {"tool": "book_appointment", "args": {}}
+    ],
+    "expected_outcome": {
+      "action": "booked",
+      "alternative_offered": true,
+      "booking_confirmed": true
+    },
+    "tags": ["booking", "slot_unavailable", "alternative_offered"]
+  }
+]

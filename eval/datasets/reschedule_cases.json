@@ -1,0 +1,71 @@
+"""
+Eval harness test cases — Reschedule scenarios.
+"""
+[
+  {
+    "case_id": "resched_001",
+    "case_type": "rescheduling",
+    "description": "Patient reschedules to another time on the same day",
+    "input_utterances": [
+      "I need to reschedule my appointment",
+      "Phone is 9861234567",
+      "I'd like to move it to 2pm instead",
+      "Yes, confirm that"
+    ],
+    "expected_tool_calls": [
+      {"tool": "lookup_patient_appointments", "args": {"phone": "9861234567"}},
+      {"tool": "check_availability", "args": {}},
+      {"tool": "reschedule_appointment", "args": {}}
+    ],
+    "expected_outcome": {
+      "action": "rescheduled",
+      "old_slot_freed": true,
+      "new_slot_booked": true
+    },
+    "tags": ["rescheduling", "same_day", "happy_path"]
+  },
+  {
+    "case_id": "resched_002",
+    "case_type": "rescheduling",
+    "description": "Patient changes mind mid-reschedule — selects a different doctor",
+    "input_utterances": [
+      "I need to reschedule with Dr. Amitav Rath",
+      "Phone 8763456789",
+      "Actually, can I see Dr. Akash Gupta instead?",
+      "Yes, next Thursday works"
+    ],
+    "expected_tool_calls": [
+      {"tool": "lookup_patient_appointments", "args": {}},
+      {"tool": "get_doctor_list", "args": {}},
+      {"tool": "check_availability", "args": {"doctor_name": "Dr. Akash Gupta"}},
+      {"tool": "reschedule_appointment", "args": {}}
+    ],
+    "expected_outcome": {
+      "action": "rescheduled",
+      "intent_changed": true,
+      "new_doctor_selected": true
+    },
+    "tags": ["rescheduling", "doctor_change", "mid_conversation_change"]
+  },
+  {
+    "case_id": "resched_003",
+    "case_type": "rescheduling",
+    "description": "Reschedule when new slot is unavailable — agent suggests next available",
+    "input_utterances": [
+      "Reschedule my physiotherapy to this Friday at 9am",
+      "Phone 7894561230",
+      "Ok the Monday slot works"
+    ],
+    "expected_tool_calls": [
+      {"tool": "lookup_patient_appointments", "args": {}},
+      {"tool": "check_availability", "args": {}},
+      {"tool": "reschedule_appointment", "args": {}}
+    ],
+    "expected_outcome": {
+      "action": "rescheduled",
+      "alternative_offered": true,
+      "alternative_accepted": true
+    },
+    "tags": ["rescheduling", "slot_unavailable", "alternative_offered"]
+  }
+]
